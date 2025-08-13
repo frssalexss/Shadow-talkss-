@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ShadowChat</title>
+<style>
+  body {
+    background: #121212;
+    color: #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 0;
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+  }
+  #login, #chat {
+    background: #222;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90vw;
+    max-width: 400px;
+    box-shadow: 0 0 10px #000;
+  }
+  #login input, #chat input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    background: #333;
+    color: #eee;
+    font-size: 1rem;
+  }
+  #chat {
+    display: none;
+    flex-direction: column;
+    height: 80vh;
+  }
+  #messages {
+    background: #1b1b1b;
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+  .message {
+    margin-bottom: 8px;
+  }
+  .message strong {
+    color: #f39c12;
+  }
+  #chat input[type="text"] {
+    box-sizing: border-box;
+  }
+  #sendBtn {
+    background: #f39c12;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #121212;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  #sendBtn:hover {
+    background: #d78f0a;
+  }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h2>ShadowChat Login</h2>
+  <input id="username" placeholder="Enter your username" autofocus />
+  <button id="loginBtn">Login</button>
+</div>
+
+<div id="chat">
+  <h2>Welcome, <span id="userDisplay"></span></h2>
+  <div id="messages"></div>
+  <input id="msgInput" type="text" placeholder="Type a message..." autocomplete="off" />
+  <button id="sendBtn">Send</button>
+</div>
+
+<script>
+  const loginDiv = document.getElementById('login');
+  const chatDiv = document.getElementById('chat');
+  const usernameInput = document.getElementById('username');
+  const loginBtn = document.getElementById('loginBtn');
+  const userDisplay = document.getElementById('userDisplay');
+  const messagesDiv = document.getElementById('messages');
+  const msgInput = document.getElementById('msgInput');
+  const sendBtn = document.getElementById('sendBtn');
+
+  let username = '';
+  let messages = [];
+
+  function loadMessages() {
+    const saved = localStorage.getItem('shadowchat_' + username);
+    messages = saved ? JSON.parse(saved) : [];
+  }
+
+  function saveMessages() {
+    localStorage.setItem('shadowchat_' + username, JSON.stringify(messages));
+  }
+
+  function renderMessages() {
+    messagesDiv.innerHTML = '';
+    messages.forEach(msg => {
+      const div = document.createElement('div');
+      div.classList.add('message');
+      div.innerHTML = `<strong>${msg.user}:</strong> ${msg.text}`;
+      messagesDiv.appendChild(div);
+    });
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  loginBtn.addEventListener('click', () => {
+    const val = usernameInput.value.trim();
+    if (val.length < 2) {
+      alert('Username must be at least 2 characters.');
+      return;
+    }
+    username = val;
+    userDisplay.textContent = username;
+    loginDiv.style.display = 'none';
+    chatDiv.style.display = 'flex';
+    loadMessages();
+    renderMessages();
+    msgInput.focus();
+  });
+
+  sendBtn.addEventListener('click', () => {
+    const text = msgInput.value.trim();
+    if (!text) return;
+    messages.push({ user: username, text });
+    saveMessages();
+    renderMessages();
+    msgInput.value = '';
+    msgInput.focus();
+  });
+
+  // Support sending message with Enter key
+  msgInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter') sendBtn.click();
+  });
+
+  // Also allow pressing Enter to login
+  usernameInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter') loginBtn.click();
+  });
+</script>
+
+</body>
+</html>
